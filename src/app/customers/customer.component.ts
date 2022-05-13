@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormControl, FormGroup, NgForm} from '@angular/forms';
 
-import { Customer } from './customer';
+import {Customer} from './customer';
 
 @Component({
   selector: 'app-customer',
@@ -10,14 +10,37 @@ import { Customer } from './customer';
 })
 export class CustomerComponent implements OnInit {
   customer = new Customer();
+  customerForm!: FormGroup;
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor(private fb:FormBuilder) {
   }
 
-  save(customerForm: NgForm): void {
-    console.log(customerForm.form);
-    console.log('Saved: ' + JSON.stringify(customerForm.value));
+  ngOnInit(): void {
+    this.customerForm = this.fb.group({
+        firstName: '',
+        lastName: '',
+        email: '',
+        sendCatalog: true
+    })
+    // this.customerForm = new FormGroup({
+    //   firstName: new FormControl(),
+    //   lastName: new FormControl(),
+    //   email: new FormControl(),
+    //   sendCatalog: new FormControl()
+    // })
+  }
+
+  save(): void {
+    console.log(this.customerForm);
+    console.log('Saved: ' + JSON.stringify(this.customerForm.value));
+  }
+
+  populateTestData() {
+    this.customerForm.patchValue({
+      firstName: "Anthony",
+      lastName:"Angatia",
+      email:"and@gmail.com",
+      sendCatalog:"false"
+    });
   }
 }
