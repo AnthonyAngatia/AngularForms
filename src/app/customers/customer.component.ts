@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, NgForm} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, NgForm, Validators} from '@angular/forms';
 
 import {Customer} from './customer';
 
@@ -12,15 +12,17 @@ export class CustomerComponent implements OnInit {
   customer = new Customer();
   customerForm!: FormGroup;
 
-  constructor(private fb:FormBuilder) {
+  constructor(private fb: FormBuilder) {
   }
 
   ngOnInit(): void {
     this.customerForm = this.fb.group({
-        firstName: '',
-        lastName: '',
-        email: '',
-        sendCatalog: true
+      firstName: ['', [Validators.required, Validators.min(3)]],
+      lastName: ['', [Validators.max(50)]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: '',
+      notification: 'email',
+      sendCatalog: true
     })
     // this.customerForm = new FormGroup({
     //   firstName: new FormControl(),
@@ -38,9 +40,20 @@ export class CustomerComponent implements OnInit {
   populateTestData() {
     this.customerForm.patchValue({
       firstName: "Anthony",
-      lastName:"Angatia",
-      email:"and@gmail.com",
-      sendCatalog:"false"
+      lastName: "Angatia",
+      email: "and@gmail.com",
+      sendCatalog: "false"
     });
+  }
+
+  setNotification(notifyVia: string):void{
+    const phoneControl = this.customerForm.get('phone')
+    if(notifyVia === 'text'){
+      phoneControl?.setValidators(Validators.required)
+    }else{
+      phoneControl?.clearValidators()
+    }
+    phoneControl?.updateValueAndValidity()
+
   }
 }
