@@ -2,20 +2,22 @@ import {Component, OnInit} from '@angular/core';
 import {AbstractControl, FormBuilder, FormControl, FormGroup, NgForm, ValidatorFn, Validators} from '@angular/forms';
 
 import {Customer} from './customer';
+import {debounceTime} from "rxjs/operators";
 
 //
-function emailMatcher(c: AbstractControl): { [key: string]: boolean } | null{
-const emailControl = c.get('email')
+function emailMatcher(c: AbstractControl): { [key: string]: boolean } | null {
+  const emailControl = c.get('email')
   const confirmCOntrol = c.get('confirmEmail')
 
-  if(emailControl?.pristine || confirmCOntrol?.pristine){
+  if (emailControl?.pristine || confirmCOntrol?.pristine) {
     return null
   }
-  if(emailControl?.value == confirmCOntrol?.value){
+  if (emailControl?.value == confirmCOntrol?.value) {
     return null
   }
   return {'match': true}
 }
+
 function ratingRange(min: number, max: number): ValidatorFn {
   return (c: AbstractControl): { [key: string]: boolean } | null => {
     if (c.value !== null && isNaN(c.value) || c.value < min || c.value > max) {
@@ -40,6 +42,13 @@ function ratingRange(min: number, max: number): ValidatorFn {
 export class CustomerComponent implements OnInit {
   customer = new Customer();
   customerForm!: FormGroup;
+  emailMessage!: string
+
+  private validationMessages: any = {
+    required: "Please enter your email address",
+    email: "Please enter a valid email address"
+  };
+
 
   constructor(private fb: FormBuilder) {
   }
@@ -57,12 +66,21 @@ export class CustomerComponent implements OnInit {
       rating: [null, ratingRange(1, 5)],
       sendCatalog: true
     })
+
     // this.customerForm = new FormGroup({
     //   firstName: new FormControl(),
     //   lastName: new FormControl(),
     //   email: new FormControl(),
     //   sendCatalog: new FormControl()
     // })
+    this.customerForm.get('notification')?.valueChanges.subscribe(
+      value => this.setNotification(value)
+    )
+
+    const emailControl = this.customerForm.get('emailGroup.email')
+    emailControl?.valueChanges.pipe(debounceTime(1000)).subscribe(
+      value => this.setMessage(emailControl)
+    )
   }
 
   save(): void {
@@ -93,4 +111,13 @@ export class CustomerComponent implements OnInit {
   // function myValidator(c: AbstractControl):{[key:string]: boolean} | null{
   //   if()
   // }
+  //We pub abstract contol because the method takes in a form control or a form group
+  setMessage(c: AbstractControl): void {
+    this.emailMessage = '';
+    if ((c.touched || c.dirty) && c.errors) {
+      this.emailMessage = Object.keys(c.errors).map(
+        key => this.validationMessages[key]
+      ).join(' ');
+    }
+  }
 }
